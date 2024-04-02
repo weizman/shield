@@ -1,6 +1,6 @@
 # Shield JS 🛡
 
-Shield ([npm](https://www.npmjs.com/package/shield-js)) is a tiny JavaScript shim/library that applies protection against
+Shield ([npm](https://www.npmjs.com/package/@weizman/shield)) is a tiny JavaScript shim/library that applies protection against
 [DOM Clobbering attacks](https://portswigger.net/web-security/dom-based/dom-clobbering)
 at runtime with close to zero integration friction.
 
@@ -11,7 +11,7 @@ at runtime with close to zero integration friction.
 Include Shield via a script tag:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/shield-js/shield.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@weizman/shield/shield.min.js"></script>
 ```
 
 That's it. 
@@ -23,7 +23,7 @@ It's best to include it as close as possible to the beginning of the `<head>` (t
 Shield supports optional configuration:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/shield-js/shield.min.js"
+<script src="https://cdn.jsdelivr.net/npm/@weizman/shield/shield.min.js"
         allowlist="id1,id2"
         reportOnly="false"
         reportTo="https://report-server/report/"

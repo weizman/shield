@@ -1,5 +1,5 @@
 {
-  "name": "shield-js",
+  "name": "@weizman/shield",
   "version": "1.0.0",
   "description": "* Context: https://x.com/WeizmanGal/status/1760394696977789272 * Visit Demo: https://weizmangal.com/DOM-Clobbering-Protection-JavaScript-Shim-PoC/",
   "main": "index.js",
