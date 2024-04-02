@@ -56,11 +56,11 @@ them on the `window` to throw an error when JavaScript code attempts to access t
 That's because while we use id/name attributes for our DOM nodes, we don't expect JavaScript code to access them, so
 when this happens it can only be done by a malicious entity - and that's what Shield blocks:
 
-![](./aaa.png)
+![](./bbb.png)
 
 Unless the id/name was explicitly provided via the `allowlist` argument, which in that case Shield will allow JavaScript to access it:
 
-![](./bbb.png)
+![](./aaa.png)
 
 Making Shield a very simple and elegant solution that requires you to do nothing but include the script in your app - **shield will do the rest!**
 
