@@ -6,6 +6,14 @@ at runtime with close to zero integration friction.
 
 > See for yourself - visit live [demo/playground](https://weizmangal.com/shield)
 
+## About
+
+Shield aspires to finally provide appropriate protection against DOM Clobbering attacks without forcing any adjustments/changes to the protected web app.
+
+By simply including Shield as a remote script, Shield will keep an eye for new "clobberable" properties (id/name) that are introduced to the DOM.
+
+If such are detected, Shield will redefine the window object of the application to detect and block JavaScript access to these properties, which effectively shields the window from being DOM clobbered, while allowing the app to function exactly to how it does without Shield's help.
+
 ## Installation
 
 Include Shield via a script tag:
