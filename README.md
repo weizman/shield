@@ -1,6 +1,6 @@
 # Shield JS 🛡
 
-Shield ([npm](https://www.npmjs.com/package/shieldjs)) is a tiny JavaScript shim/library that applies protection against
+Shield ([npm](https://www.npmjs.com/package/shield-js)) is a tiny JavaScript shim/library that applies protection against
 [DOM Clobbering attacks](https://portswigger.net/web-security/dom-based/dom-clobbering)
 at runtime with close to zero integration friction.
 
@@ -11,17 +11,19 @@ at runtime with close to zero integration friction.
 Include Shield via a script tag:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/shieldjs/shield.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/shield-js/shield.min.js"></script>
 ```
 
-That's it. It's best to include it as close as possible to the beginning of the `<head>` (the earliest it runs, the better it protects).
+That's it. 
+
+It's best to include it as close as possible to the beginning of the `<head>` (the earliest it runs, the better it protects).
 
 ## Usage
 
 Shield supports optional configuration:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/shieldjs/shield.min.js"
+<script src="https://cdn.jsdelivr.net/npm/shield-js/shield.min.js"
         allowlist="id1,id2"
         reportOnly="false"
         reportTo="https://report-server/report/"
@@ -45,6 +47,22 @@ Shield supports optional configuration:
     }
 }
 ```
+
+## Result
+
+Shield will collect the values of all id/name properties that were introduced to DOM at runtime and will redefine
+them on the `window` to throw an error when JavaScript code attempts to access them. 
+
+That's because while we use id/name attributes for our DOM nodes, we don't expect JavaScript code to access them, so
+when this happens it can only be done by a malicious entity - and that's what Shield blocks:
+
+![](./aaa.png)
+
+Unless the id/name was explicitly provided via the `allowlist` argument, which in that case Shield will allow JavaScript to access it:
+
+![](./bbb.png)
+
+Making Shield a very simple and elegant solution that requires you to do nothing but include the script in your app - **shield will do the rest!**
 
 ## About
 
