@@ -1,0 +1,151 @@
+<html>
+    <head>
+        <script>
+            location.href.includes('disable') && (MutationObserver = function () { throw ('DEMO DISABLED') });
+        </script>
+        <script src="./shield.js"
+                allowlist="aaa,bhbh"
+                reportOnly="false"
+                reportTo="https://csp-report-server/csp-report/">
+        </script>
+    </head>
+    <body style="max-width: 90vh">
+        <a href="https://github.com/weizman/shield"><h1>Shield JS 🛡️</h1></a>
+        <blockquote>
+            <i>
+                Shield is a tiny JavaScript shim/library that applies protection against
+                <a href="https://portswigger.net/web-security/dom-based/dom-clobbering">DOM Clobbering attacks</a>
+                at runtime with close to zero integration friction →
+                <a href="https://github.com/weizman/shield">About</a> |
+                <a href="https://github.com/weizman/shield">Usage</a> |
+                <a href="https://github.com/weizman/shield">Installation</a>
+                (
+                <script>
+                    document.currentScript.parentElement.innerHTML += location.href.includes('disable') ?
+                        `<i>Demo is <a href="?">disabled</a></i>` :
+                        `<i>Demo is <a href="?disabled">enabled</a></i>`;
+
+                </script>
+                )
+            </i>
+        </blockquote>
+        <div id="aaa" style="cursor: pointer">
+            <h2> This is <code>DIV#aaa</code> </h2>
+            <p>
+            <details>
+                <summary>
+                    <b>
+                        Since it's in the allowlist, it is allowed to be clobbered
+                    </b>
+                    <br>
+                    <i>
+                        This means attempting to access it will return <code>DIV#aaa</code> DOM node (<u>click here to see</u>)
+                    </i>
+                </summary>
+            <img src="aaa.png"/>
+            </details>
+            </p>
+        </div>
+        <hr>
+        <div id="bbb" style="cursor: pointer">
+            <h2> This is <code>DIV#bbb</code> </h2>
+            <p>
+            <details>
+                <summary>
+                    <b>
+                        Since it's NOT in the allowlist, it is NOT allowed to be clobbered
+                    </b>
+                    <br>
+                    <i>
+                        This means attempting to access it will throw an Error (<u>click here to see</u>)
+                    </i>
+                </summary>
+                <img src="bbb.png"/>
+            </details>
+            </p>
+        </div>
+        <hr>
+        <div>
+            <ul>
+                <li>
+                    Open the console and try setting the "id" attribute of any DOM node to any value,
+                    and then try accessing it via <code>window[YOUR_VALUE]</code> - this will throw an Error as well.
+                </li>
+                <li>
+                    <i>Idea 💡</i> This shim can easily be manifested as a new CSP directive, for example:
+                    <ul>
+                        <li>
+                            <code>Content-Security-Policy: "dom-clobbering: 'aaa'"</code>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <hr>
+        <div id="container">
+            <script src="./test.js"></script>
+            <script>
+                {
+                    const container = document.getElementById('container');
+                    container.innerHTML = '';
+                    window.TEST(container);
+                }
+            </script>
+        </div>
+        <hr>
+        <div>
+            <b>Try it yourself: </b>
+            <input id="input" placeholder="id or name you pick" contenteditable="true"/>
+            <i>(access is <b style="color:green" id="status">allowed</b>)</i>
+            <button id="button" onclick="demo()">Run (<code>⌘ + ↵</code> / <code>^ + ↵</code>)</button>
+            <br><br>
+            <div style="cursor: pointer">
+                <details>
+                    <summary>view parsed html</summary>
+                    <div style="border: 1px solid; display: contents; width: 15vh; height: 80px" id="dump"></div>
+                </details>
+                <br>
+                <div style="float:left; padding-right: 10px">
+                    <textarea id="textarea" placeholder="<div id='id or name you pick'>" style="width: 60vh; height: 80px"></textarea>
+                </div>
+            </div>
+            <script>
+                {
+                    window.addEventListener('keydown', (event) => {
+                        if ((event.ctrlKey || event.metaKey) && event.code === 'Enter') {
+                            button.click();
+                        }
+                    });
+                    const dump = document.getElementById('dump');
+                    const button = document.getElementById('button');
+                    const status = document.getElementById('status');
+                    const input = document.getElementById('input');
+                    const textarea = document.getElementById('textarea');
+                    const demo = JSON.parse(localStorage.demo || '{}');
+                    const {html, value} = demo;
+                    value && (input.value = value);
+                    html && (textarea.value = html);
+                    window.demo = () => {
+                        dump.innerHTML = '';
+                        const value = input.value;
+                        const html = textarea.value;
+                        localStorage.demo = JSON.stringify({html, value});
+                        setTimeout(() => {
+                            dump.innerHTML += html;
+                            setTimeout(() => {
+                                try {window[value]} catch (err) {
+                                    status.style.color = 'red';
+                                    status.innerText = 'blocked';
+                                    return;
+                                }
+                                status.style.color = 'green';
+                                status.innerText = 'allowed';
+                            });
+                        });
+                    }
+                    window.demo();
+                }
+            </script>
+        </div>
+    </body>
+</html>
