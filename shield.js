@@ -51,11 +51,11 @@
         if (!window[value] && !document[value]) {
             return;
         }
-        if (!legitDocumentDomProps.includes(prop)) {
-            if (document[prop] instanceof Element) {
+        if (!legitDocumentDomProps.includes(value)) {
+            if (document[value] instanceof Element) {
                 return block(value);
             }
-            if (document[prop] instanceof HTMLCollection) {
+            if (document[value] instanceof HTMLCollection) {
                 return block(value);
             }
         }
