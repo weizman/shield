@@ -4,6 +4,8 @@
     const reportOnly = (document.currentScript.getAttribute('reportOnly') || 'false') === 'true';
     const reportTo = (document.currentScript.getAttribute('reportTo') || '');
 
+    const legitDocumentDomProps = ['documentElement', 'body', 'head', 'scrollingElement', 'firstElementChild', 'lastElementChild', 'activeElement', 'firstChild', 'lastChild'];
+
     if (reportOnly && !reportTo.startsWith('https:')) {
         throw new Error('when reportOnly is turned on, reportTo must be provided as a legitimate URL.' +
             'until fixed, dom clobbering protection is off');
@@ -46,10 +48,21 @@
         if (allowlist?.includes(value) || blocked.includes(value)) {
             return;
         }
-        if (name !== 'id' && name !== 'name') {
+        if (!window[value] && !document[value]) {
             return;
         }
-        if (!window[value]) {
+        if (!legitDocumentDomProps.includes(value)) {
+            if (document[value] instanceof Element) {
+                return block(value);
+            }
+            if (document[value] instanceof HTMLCollection) {
+                return block(value);
+            }
+            if (document[value] === document[value]?.window) {
+                return block(value);
+            }
+        }
+        if (name !== 'id' && name !== 'name') {
             return;
         }
         if (window[value] instanceof Element) {
