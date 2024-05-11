@@ -48,10 +48,18 @@
         if (allowlist?.includes(value) || blocked.includes(value)) {
             return;
         }
-        if (name !== 'id' && name !== 'name') {
+        if (!window[value] && !document[value]) {
             return;
         }
-        if (!window[value] && !document[value]) {
+        if (!legitDocumentDomProps.includes(prop)) {
+            if (document[prop] instanceof Element) {
+                return block(value);
+            }
+            if (document[prop] instanceof HTMLCollection) {
+                return block(value);
+            }
+        }
+        if (name !== 'id' && name !== 'name') {
             return;
         }
         if (window[value] instanceof Element) {
@@ -62,14 +70,6 @@
         }
         if (window[value] === window[value]?.window && name === 'name') {
             return block(value);
-        }
-        if (!legitDocumentDomProps.includes(prop)) {
-            if (document[prop] instanceof Element) {
-                return block(value);
-            }
-            if (document[prop] instanceof HTMLCollection) {
-                return block(value);
-            }
         }
     }
 
