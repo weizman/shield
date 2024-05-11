@@ -58,6 +58,9 @@
             if (document[value] instanceof HTMLCollection) {
                 return block(value);
             }
+            if (document[value] === document[value]?.window) {
+                return block(value);
+            }
         }
         if (name !== 'id' && name !== 'name') {
             return;
