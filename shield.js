@@ -4,6 +4,8 @@
     const reportOnly = (document.currentScript.getAttribute('reportOnly') || 'false') === 'true';
     const reportTo = (document.currentScript.getAttribute('reportTo') || '');
 
+    const legitDocumentDomProps = ['documentElement', 'body', 'head', 'scrollingElement', 'firstElementChild', 'lastElementChild', 'activeElement', 'firstChild', 'lastChild'];
+
     if (reportOnly && !reportTo.startsWith('https:')) {
         throw new Error('when reportOnly is turned on, reportTo must be provided as a legitimate URL.' +
             'until fixed, dom clobbering protection is off');
@@ -29,9 +31,9 @@
         });
     }
 
-    function block(value) {
+    function block(object, value) {
         blocked.push(value);
-        Object.defineProperty(window, value, {get: get});
+        Object.defineProperty(object, value, {get: get});
         function get() {
             if (reportOnly) {
                 report(value);
@@ -41,26 +43,52 @@
         }
     }
 
-    function hook(node) {
-        const {name, value} = node;
-        if (allowlist?.includes(value) || blocked.includes(value)) {
+    function blockDocument(value) {
+        if (!document[value]) {
+            return;
+        }
+        if (legitDocumentDomProps.includes(value)) {
+            return;
+        }
+        if (document[value] instanceof Element) {
+            return block(document, value);
+        }
+        if (document[value] instanceof HTMLCollection) {
+            return block(document, value);
+        }
+        if (document[value] === document[value]?.window) {
+            return block(document, value);
+        }
+    }
+
+    function blockWindow(value, name) {
+        if (!window[value]) {
             return;
         }
         if (name !== 'id' && name !== 'name') {
             return;
         }
-        if (!window[value]) {
-            return;
-        }
         if (window[value] instanceof Element) {
-            return block(value);
+            return block(window, value);
         }
         if (window[value] instanceof HTMLCollection) {
-            return block(value);
+            return block(window, value);
         }
         if (window[value] === window[value]?.window && name === 'name') {
-            return block(value);
+            return block(window, value);
         }
+    }
+
+    function hook(node) {
+        const {name, value} = node;
+        if (allowlist?.includes(value)) {
+            return;
+        }
+        if (blocked.includes(value)) {
+            return;
+        }
+        blockDocument(value);
+        blockWindow(value, name);
     }
 
     function address(node) {

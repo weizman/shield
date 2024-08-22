@@ -138,6 +138,11 @@
                                     status.innerText = 'blocked';
                                     return;
                                 }
+                                try {document[value]} catch (err) {
+                                    status.style.color = 'red';
+                                    status.innerText = 'blocked';
+                                    return;
+                                }
                                 status.style.color = 'green';
                                 status.innerText = 'allowed';
                             });
