@@ -24,6 +24,9 @@ window.TEST = (function(){
                 try {window['aaa']} catch (err) {
                     return [false, test];
                 }
+                try {document['aaa']} catch (err) {
+                    return [false, test];
+                }
                 return [true, test];
             },
 
@@ -37,6 +40,9 @@ window.TEST = (function(){
                 try {window[test]} catch (err) {
                     return [true, test];
                 }
+                try {document[test]} catch (err) {
+                    return [true, test];
+                }
                 return [false, test];
             },
 
@@ -46,6 +52,9 @@ window.TEST = (function(){
                 child.setAttribute('id', test);
                 await new Promise(r => setTimeout(r, 0));
                 try {window[test]} catch (err) {
+                    return [true, test];
+                }
+                try {document[test]} catch (err) {
                     return [true, test];
                 }
                 return [false, test];
@@ -60,6 +69,9 @@ window.TEST = (function(){
                 try {window[test]} catch (err) {
                     return [true, test];
                 }
+                try {document[test]} catch (err) {
+                    return [true, test];
+                }
                 return [false, test];
             },
 
@@ -72,21 +84,13 @@ window.TEST = (function(){
                 try {window[test]} catch (err) {
                     return [true, test];
                 }
+                try {document[test]} catch (err) {
+                    return [true, test];
+                }
                 return [false, test];
             },
 
             // name
-
-            async function(div) {
-                const test = 'name attr after ignored (iframe)';
-                const child = div.appendChild(document.createElement('iframe'));
-                child.setAttribute('name', test);
-                await new Promise(r => setTimeout(r, 0));
-                try {window[test]} catch (err) {
-                    return [false, test];
-                }
-                return [true, test];
-            },
 
             async function(div) {
                 const test = 'name attr before ignored (iframe)';
@@ -97,6 +101,9 @@ window.TEST = (function(){
                 try {window[test]} catch (err) {
                     return [true, test];
                 }
+                try {document[test]} catch (err) {
+                    return [true, test];
+                }
                 return [false, test];
             },
 
@@ -105,10 +112,10 @@ window.TEST = (function(){
                 const child = div.appendChild(document.createElement('iframe'));
                 child.setAttribute('name', test);
                 await new Promise(r => setTimeout(r, 0));
-                try {window[test]} catch (err) {
-                    return [false, test];
+                try {document[test]} catch (err) {
+                    return [true, test];
                 }
-                return [true, test];
+                return [false, test];
             },
 
             async function(div) {
@@ -118,6 +125,9 @@ window.TEST = (function(){
                 div.appendChild(child);
                 await new Promise(r => setTimeout(r, 0));
                 try {window[test]} catch (err) {
+                    return [true, test];
+                }
+                try {document[test]} catch (err) {
                     return [true, test];
                 }
                 return [false, test];
@@ -130,6 +140,9 @@ window.TEST = (function(){
                 div.appendChild(child);
                 await new Promise(r => setTimeout(r, 0));
                 try {window[test]} catch (err) {
+                    return [true, test];
+                }
+                try {document[test]} catch (err) {
                     return [true, test];
                 }
                 return [false, test];
@@ -147,6 +160,9 @@ window.TEST = (function(){
                 try {window[test]} catch (err) {
                     return [true, test];
                 }
+                try {document[test]} catch (err) {
+                    return [true, test];
+                }
                 return [false, test];
             },
 
@@ -162,6 +178,9 @@ window.TEST = (function(){
                 try {window[test]} catch (err) {
                     return [true, test];
                 }
+                try {document[test]} catch (err) {
+                    return [true, test];
+                }
                 return [false, test];
             },
 
@@ -172,6 +191,9 @@ window.TEST = (function(){
                 try {window[test]} catch (err) {
                     return [true, test];
                 }
+                try {document[test]} catch (err) {
+                    return [true, test];
+                }
                 return [false, test];
             },
 
@@ -180,6 +202,9 @@ window.TEST = (function(){
                 div.innerHTML = `<math id="${test}">`;
                 await new Promise(r => setTimeout(r, 0));
                 try {window[test]} catch (err) {
+                    return [true, test];
+                }
+                try {document[test]} catch (err) {
                     return [true, test];
                 }
                 return [false, test];

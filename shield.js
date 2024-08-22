@@ -31,9 +31,9 @@
         });
     }
 
-    function block(value) {
+    function block(object, value) {
         blocked.push(value);
-        Object.defineProperty(window, value, {get: get});
+        Object.defineProperty(object, value, {get: get});
         function get() {
             if (reportOnly) {
                 report(value);
@@ -43,37 +43,52 @@
         }
     }
 
-    function hook(node) {
-        const {name, value} = node;
-        if (allowlist?.includes(value) || blocked.includes(value)) {
+    function blockDocument(value) {
+        if (!document[value]) {
             return;
         }
-        if (!window[value] && !document[value]) {
+        if (legitDocumentDomProps.includes(value)) {
             return;
         }
-        if (!legitDocumentDomProps.includes(value)) {
-            if (document[value] instanceof Element) {
-                return block(value);
-            }
-            if (document[value] instanceof HTMLCollection) {
-                return block(value);
-            }
-            if (document[value] === document[value]?.window) {
-                return block(value);
-            }
+        if (document[value] instanceof Element) {
+            return block(document, value);
+        }
+        if (document[value] instanceof HTMLCollection) {
+            return block(document, value);
+        }
+        if (document[value] === document[value]?.window) {
+            return block(document, value);
+        }
+    }
+
+    function blockWindow(value, name) {
+        if (!window[value]) {
+            return;
         }
         if (name !== 'id' && name !== 'name') {
             return;
         }
         if (window[value] instanceof Element) {
-            return block(value);
+            return block(window, value);
         }
         if (window[value] instanceof HTMLCollection) {
-            return block(value);
+            return block(window, value);
         }
         if (window[value] === window[value]?.window && name === 'name') {
-            return block(value);
+            return block(window, value);
         }
+    }
+
+    function hook(node) {
+        const {name, value} = node;
+        if (allowlist?.includes(value)) {
+            return;
+        }
+        if (blocked.includes(value)) {
+            return;
+        }
+        blockDocument(value);
+        blockWindow(value, name);
     }
 
     function address(node) {
