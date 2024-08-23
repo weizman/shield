@@ -82,13 +82,22 @@
             </ul>
         </div>
         <hr>
-        <div id="container">
-            <script src="./test.js"></script>
+        <script src="./test.js"></script>
+        <div id="container-window">
             <script>
                 {
-                    const container = document.getElementById('container');
+                    const container = document.getElementById('container-window');
                     container.innerHTML = '';
-                    window.TEST(container);
+                    window.TEST(container, 'window');
+                }
+            </script>
+        </div>
+        <div id="container-document">
+            <script>
+                {
+                    const container = document.getElementById('container-document');
+                    container.innerHTML = '';
+                    window.TEST(container, 'document');
                 }
             </script>
         </div>

@@ -33,12 +33,12 @@
 
     function block(object, value) {
         blocked.push(value);
-        Object.defineProperty(object, value, {get: get});
+        Object.defineProperty(window[object], value, {get: get});
         function get() {
             if (reportOnly) {
                 report(value);
             } else {
-                throw new Error(`window["${value}"] access attempt was intercepted:`);
+                throw new Error(`${object}["${value}"] access attempt was intercepted:`);
             }
         }
     }
@@ -51,13 +51,13 @@
             return;
         }
         if (document[value] instanceof Element) {
-            return block(document, value);
+            return block('document', value);
         }
         if (document[value] instanceof HTMLCollection) {
-            return block(document, value);
+            return block('document', value);
         }
         if (document[value] === document[value]?.window) {
-            return block(document, value);
+            return block('document', value);
         }
     }
 
@@ -69,13 +69,13 @@
             return;
         }
         if (window[value] instanceof Element) {
-            return block(window, value);
+            return block('window', value);
         }
         if (window[value] instanceof HTMLCollection) {
-            return block(window, value);
+            return block('window', value);
         }
         if (window[value] === window[value]?.window && name === 'name') {
-            return block(window, value);
+            return block('window', value);
         }
     }
 
@@ -87,8 +87,8 @@
         if (blocked.includes(value)) {
             return;
         }
-        blockDocument(value);
         blockWindow(value, name);
+        blockDocument(value);
     }
 
     function address(node) {
