@@ -87,8 +87,8 @@
         if (blocked.includes(value)) {
             return;
         }
-        blockDocument(value);
         blockWindow(value, name);
+        blockDocument(value);
     }
 
     function address(node) {
