@@ -171,9 +171,6 @@ window.TEST = (function(){
         for (const test of tests) {
             const [div] = before();
             const [passed, tester, reason] = await test(div);
-            if (passed === null) {
-                return;
-            }
             let msg, color;
             if (!passed) {
                 const result = document.getElementById('result-' + object);
