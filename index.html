@@ -8,6 +8,12 @@
                 reportOnly="false"
                 reportTo="https://csp-report-server/csp-report/">
         </script>
+        <script>
+            config = (function(){
+                const urlSearchParams = new URLSearchParams(window.location.search);
+                return Object.fromEntries(urlSearchParams.entries());
+            }());
+        </script>
     </head>
     <body style="max-width: 90vh">
         <a href="https://github.com/weizman/shield"><h1>Shield JS 🛡️</h1></a>
@@ -21,7 +27,7 @@
                 <a href="https://github.com/weizman/shield">Installation</a>
                 (
                 <script>
-                    document.currentScript.parentElement.innerHTML += location.href.includes('disable') ?
+                    document.currentScript.parentElement.innerHTML += config.hasOwnProperty('disabled') ?
                         `<i>Demo is <a href="?">disabled</a></i>` :
                         `<i>Demo is <a href="?disabled">enabled</a></i>`;
 
@@ -130,34 +136,36 @@
                     const status = document.getElementById('status');
                     const input = document.getElementById('input');
                     const textarea = document.getElementById('textarea');
-                    const demo = JSON.parse(localStorage.demo || '{}');
-                    const {html, value} = demo;
-                    value && (input.value = value);
-                    html && (textarea.value = html);
+                    const value = input.value = config.value || '';
+                    const html = textarea.value = config.html || '';
+                    dump.innerHTML = '';
+                    setTimeout(() => {
+                        dump.innerHTML += html;
+                        setTimeout(() => {
+                            try {window[value]} catch (err) {
+                                status.style.color = 'red';
+                                status.innerText = 'blocked';
+                                return;
+                            }
+                            try {document[value]} catch (err) {
+                                status.style.color = 'red';
+                                status.innerText = 'blocked';
+                                return;
+                            }
+                            status.style.color = 'green';
+                            status.innerText = 'allowed';
+                        });
+                    });
                     window.demo = () => {
-                        dump.innerHTML = '';
                         const value = input.value;
                         const html = textarea.value;
-                        localStorage.demo = JSON.stringify({html, value});
-                        setTimeout(() => {
-                            dump.innerHTML += html;
-                            setTimeout(() => {
-                                try {window[value]} catch (err) {
-                                    status.style.color = 'red';
-                                    status.innerText = 'blocked';
-                                    return;
-                                }
-                                try {document[value]} catch (err) {
-                                    status.style.color = 'red';
-                                    status.innerText = 'blocked';
-                                    return;
-                                }
-                                status.style.color = 'green';
-                                status.innerText = 'allowed';
-                            });
-                        });
+                        const url = new URL(window.location.href);
+                        if (html !== config.html || value !== config.value) {
+                            url.searchParams.set('html', html);
+                            url.searchParams.set('value', value);
+                            location.href = url;
+                        }
                     }
-                    window.demo();
                 }
             </script>
         </div>
