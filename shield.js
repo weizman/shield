@@ -128,7 +128,7 @@
             attributes: true,
             childList: true,
             subtree: true,
-            attributeFilter: ['id'],
+            attributeFilter: ['id', 'name'],
         });
     }
 }
