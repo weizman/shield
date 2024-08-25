@@ -1,67 +1,73 @@
 {
     const blocked = [];
     const allowlist = (document.currentScript.getAttribute('allowlist') || '').split(',');
-    const reportOnly = (document.currentScript.getAttribute('reportOnly') || 'false') === 'true';
-    const reportTo = (document.currentScript.getAttribute('reportTo') || '');
 
     const legitDocumentDomProps = ['documentElement', 'body', 'head', 'scrollingElement', 'firstElementChild', 'lastElementChild', 'activeElement', 'firstChild', 'lastChild'];
 
-    if (reportOnly && !reportTo.startsWith('https:')) {
-        throw new Error('when reportOnly is turned on, reportTo must be provided as a legitimate URL.' +
-            'until fixed, dom clobbering protection is off');
-    }
-
     observe(document.documentElement);
 
-    function report(value) {
-        fetch(reportTo, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                'csp-report': {
-                    "blocked-property": value,
-                    "disposition": "report",
-                    "document-uri": document.documentURI,
-                    "effective-directive": "dom-clobbering",
-                    "original-policy": "no-access",
-                    "referrer": document.referrer,
-                    "violated-directive": "dom-clobbering",
-                },
-            }),
-        });
-    }
-
-    function block(object, value) {
-        blocked.push(value);
-        Object.defineProperty(window[object], value, {get: get});
-        function get() {
-            if (reportOnly) {
-                report(value);
-            } else {
+    function block(object, value, name, node) {
+        blocked.push(JSON.stringify({object, value}));
+        const tracked = [];
+        while (node) {
+            if (!(node instanceof HTMLCollection || node instanceof Element)) {
+                break;
+            }
+            tracked.push(node);
+            for (const prop of ['id', 'name']) {
+                if (node.hasAttribute(prop)) {
+                    const attr = node.getAttribute(prop);
+                    node.setAttribute('shield_' + prop, attr);
+                    node.removeAttribute(prop);
+                }
+            }
+            node = window[object][value];
+        }
+        Object.defineProperty(window[object], value, {get: function() {
                 throw new Error(`${object}["${value}"] access attempt was intercepted:`);
+            }
+        });
+        for (const node of tracked) {
+            for (const prop of ['id', 'name']) {
+                if (node.hasAttribute('shield_' + prop)) {
+                    const attr = node.getAttribute('shield_' + prop);
+                    node.setAttribute(prop, attr);
+                    node.removeAttribute('shield_' + prop);
+                }
             }
         }
     }
 
-    function blockDocument(value) {
+    function blockDocument(value, name, node) {
+        const object = 'document';
+        if (blocked.includes(JSON.stringify({object, value}))) {
+            return;
+        }
         if (!document[value]) {
+            return;
+        }
+        if (name !== 'id' && name !== 'name') {
             return;
         }
         if (legitDocumentDomProps.includes(value)) {
             return;
         }
         if (document[value] instanceof Element) {
-            return block('document', value);
+            return block(object, value, name, node);
         }
         if (document[value] instanceof HTMLCollection) {
-            return block('document', value);
+            return block(object, value, name, node);
         }
         if (document[value] === document[value]?.window) {
-            return block('document', value);
+            return block(object, value, name, node);
         }
     }
 
-    function blockWindow(value, name) {
+    function blockWindow(value, name, node) {
+        const object = 'window';
+        if (blocked.includes(JSON.stringify({object, value}))) {
+            return;
+        }
         if (!window[value]) {
             return;
         }
@@ -69,36 +75,33 @@
             return;
         }
         if (window[value] instanceof Element) {
-            return block('window', value);
+            return block(object, value, name, node);
         }
         if (window[value] instanceof HTMLCollection) {
-            return block('window', value);
+            return block(object, value, name, node);
         }
         if (window[value] === window[value]?.window && name === 'name') {
-            return block('window', value);
+            return block(object, value, name, node);
         }
     }
 
-    function hook(node) {
-        const {name, value} = node;
+    function hook(node, {name, value}) {
         if (allowlist?.includes(value)) {
             return;
         }
-        if (blocked.includes(value)) {
-            return;
-        }
-        blockWindow(value, name);
-        blockDocument(value);
+        blockWindow(value, name, node);
+        blockDocument(value, name, node);
     }
 
     function address(node) {
         switch (node.nodeType) {
             case Node.ELEMENT_NODE:
                 const nodes = Array.from(node.querySelectorAll('*[id],*[name]')).concat(node);
-                nodes.forEach(node => Array.from(node.attributes).forEach(address));
+                nodes.forEach(node => Array.from(node.attributes).forEach(address.bind(node)));
                 break;
             case Node.ATTRIBUTE_NODE:
-                hook(node);
+                const {name, value} = node;
+                hook(this, {name, value});
                 break;
             default:
                 break;

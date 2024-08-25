@@ -1,9 +1,5 @@
 window.TEST = (function(){
     return async function main(container, object) {
-        function error(err, object, prop) {
-            return err.message === `${object}["${prop}"] access attempt was intercepted:`;
-        }
-
         function setup() {
             container.innerHTML = `
 <details>
@@ -21,21 +17,50 @@ window.TEST = (function(){
             ];
         }
 
-        function assert(value, test) {
-            try {window[object][test]} catch (err) {
-                if (error(err, object, test)) {
-                    return [true, test, null];
-                } else {
-                    return [false, test, err.message];
+        function assert(test) {
+            const results = ['window', 'document'].map(object => {
+                try {
+                    if (window[object][test] instanceof Element) {
+                        return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (Element)`];
+                    }
+                    if (window[object][test] instanceof HTMLCollection) {
+                        return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (HTMLCollection)`];
+                    }
+                    for (let i = 0; i < Infinity; i++) {
+                        if (!window[i]) {
+                            break;
+                        }
+                        if (window[object][test] === window[i] && window[i] === window[i].window) {
+                            return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (Window)`];
+                        }
+                    }
+                } catch (err) {
+                    if (err.message === `${object}["${test}"] access attempt was intercepted:`) {
+                        return [true, test, `shield worked, environment did not clobber ${object}["${test}"] (undefined)`];
+                    }
+                    return [false, test, `UNEXPECTED TEST RESULT WITH ERROR (TESTER MUST CHECK THIS): "${err.message}"`]
                 }
+                return [null];
+            });
+            if (results[0][0] === null && results[1][0] === null) {
+                return [false, test, `UNEXPECTED TEST RESULT (TESTER MUST CHECK THIS)`];
             }
-            if (window[object][test] === undefined) {
-                return [true, test, `environment did not clobber ${object}["${test}"] (undefined)`];
+            if (results[0][0] === null) {
+                return results[1];
             }
-            if (window[object][test] === value) {
-                return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (Element/Window)`];
+            if (results[1][0] === null) {
+                return results[0];
             }
-            throw new Error('UNEXPECTED TEST RESULT (TESTER MUST CHECK THIS)');
+            if (results[0][0] === false) {
+                return results[0];
+            }
+            if (results[1][0] === false) {
+                return results[1];
+            }
+            if (results[0][0] === true && results[1][0] === true) {
+                return results[1];
+            }
+            throw new Error(`UNEXPECTED TEST RESULT (TESTER MUST CHECK THIS)`);
         }
 
         const tests = [
@@ -46,13 +71,7 @@ window.TEST = (function(){
                 const child = div.appendChild(document.createElement('span'));
                 child.id = 'aaa';
                 await new Promise(r => setTimeout(r, 0));
-                try {window['aaa']} catch (err) {
-                    return [false, test];
-                }
-                try {document['aaa']} catch (err) {
-                    return [false, test];
-                }
-                return [true, test];
+                return [!!window['window']['aaa'] || !!window['document']['aaa'], test];
             },
 
             // id
@@ -62,7 +81,7 @@ window.TEST = (function(){
                 const child = div.appendChild(document.createElement('span'));
                 child.id = test;
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child, test);
+                return assert(test);
             },
 
             async function(div) {
@@ -70,7 +89,7 @@ window.TEST = (function(){
                 const child = div.appendChild(document.createElement('span'));
                 child.setAttribute('id', test);
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child, test);
+                return assert(test);
             },
 
             async function(div) {
@@ -79,7 +98,7 @@ window.TEST = (function(){
                 child.id = test;
                 div.appendChild(child);
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child, test);
+                return assert(test);
             },
 
             async function(div) {
@@ -88,7 +107,7 @@ window.TEST = (function(){
                 child.setAttribute('id', test);
                 div.appendChild(child);
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child, test);
+                return assert(test);
             },
 
             // name
@@ -99,7 +118,7 @@ window.TEST = (function(){
                 child.setAttribute('name', test);
                 div.appendChild(child);
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child.contentWindow, test);
+                return assert(test);
             },
 
             async function(div) {
@@ -107,7 +126,7 @@ window.TEST = (function(){
                 const child = div.appendChild(document.createElement('iframe'));
                 child.setAttribute('name', test);
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child.contentWindow, test);
+                return assert(test);
             },
 
             async function(div) {
@@ -116,7 +135,7 @@ window.TEST = (function(){
                 child.setAttribute('name', test);
                 div.appendChild(child);
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child.contentWindow, test);
+                return assert(test);
             },
 
             async function(div) {
@@ -125,7 +144,7 @@ window.TEST = (function(){
                 child.setAttribute('name', test);
                 div.appendChild(child);
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child, test);
+                return assert(test);
             },
 
             async function(div) {
@@ -137,7 +156,7 @@ window.TEST = (function(){
                 div.appendChild(child);
                 div.appendChild(child2);
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child2, test);
+                return assert(test);
             },
 
             async function(div) {
@@ -149,21 +168,35 @@ window.TEST = (function(){
                 child.appendChild(child2);
                 div.appendChild(child);
                 await new Promise(r => setTimeout(r, 0));
-                return assert(child2, test);
+                return assert(test);
             },
 
             async function(div) {
                 const test = object + (' : non html element (svg)');
                 div.innerHTML = `<svg id="${test}">`;
                 await new Promise(r => setTimeout(r, 0));
-                return assert(div.firstChild, test);
+                return assert(test);
             },
 
             async function(div) {
                 const test = object + (' : non html element (math)');
                 div.innerHTML = `<math id="${test}">`;
                 await new Promise(r => setTimeout(r, 0));
-                return assert(div.firstChild, test);
+                return assert(test);
+            },
+
+            async function(div) {
+                const test = 'querySelector';
+                div.innerHTML = `<embed name="${test}">`;
+                await new Promise(r => setTimeout(r, 0));
+                return assert(test);
+            },
+
+            async function(div) {
+                const test = 'cookie';
+                div.innerHTML = `<embed name="${test}">`;
+                await new Promise(r => setTimeout(r, 0));
+                return assert(test);
             },
         ];
 

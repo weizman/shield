@@ -31,30 +31,10 @@ It's best to include it as close as possible to the beginning of the `<head>` (t
 Shield supports optional configuration:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@weizman/shield/shield.min.js"
-        allowlist="id1,id2"
-        reportOnly="false"
-        reportTo="https://report-server/report/"
-></script>
+<script src="https://cdn.jsdelivr.net/npm/@weizman/shield/shield.min.js" allowlist="id1,id2"></script>
 ```
 
 * `allowlist` - a list of ids you allow to be clobbered into the DOM (shield will overlook them when applying its protection).
-* `reportOnly` - whether to report forbidden access attempt or to throw an error. If enabled, `reportTo` must also be provided.
-* `reportTo` - a valid `https:` URL to report forbidden access attempt to in case `reportOnly` is enabled (CSP format):
-
-```json
-{
-    "csp-report": {
-        "blocked-property": "id3",
-        "disposition": "report",
-        "document-uri": "https://my-app.com/some-route/",
-        "effective-directive": "dom-clobbering",
-        "original-policy": "no-access",
-        "referrer": "https://my-app.com/some-route/",
-        "violated-directive": "dom-clobbering"
-    }
-}
-```
 
 ## Result
 

@@ -3,10 +3,7 @@
         <script>
             location.href.includes('disable') && (MutationObserver = function () { throw ('DEMO DISABLED') });
         </script>
-        <script src="./shield.js"
-                allowlist="aaa,bhbh"
-                reportOnly="false"
-                reportTo="https://csp-report-server/csp-report/">
+        <script src="./shield.js" allowlist="aaa,bhbh">
         </script>
         <script>
             config = (function(){
@@ -111,7 +108,7 @@
         <div>
             <b>Try it yourself: </b>
             <input id="input" placeholder="id or name you pick" contenteditable="true"/>
-            <i>(access is <b style="color:green" id="status">allowed</b>)</i>
+            <i>(clobbering <b style="color:green" id="status">worked!</b>)</i>
             <button id="button" onclick="demo()">Run (<code>⌘ + ↵</code> / <code>^ + ↵</code>)</button>
             <br><br>
             <div style="cursor: pointer">
@@ -126,11 +123,58 @@
             </div>
             <script>
                 {
+                    function assert(test) {
+                        const results = ['window', 'document'].map(object => {
+                            try {
+                                if (window[object][test] instanceof Element) {
+                                    return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (Element)`];
+                                }
+                                if (window[object][test] instanceof HTMLCollection) {
+                                    return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (HTMLCollection)`];
+                                }
+                                for (let i = 0; i < Infinity; i++) {
+                                    if (!window[i]) {
+                                        break;
+                                    }
+                                    if (window[object][test] === window[i] && window[i] === window[i].window) {
+                                        return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (Window)`];
+                                    }
+                                }
+                            } catch (err) {
+                                if (err.message === `${object}["${test}"] access attempt was intercepted:`) {
+                                    return [true, test, `shield worked, environment did not clobber ${object}["${test}"] (undefined)`];
+                                }
+                                return [false, test, `UNEXPECTED TEST RESULT WITH ERROR (TESTER MUST CHECK THIS): "${err.message}"`]
+                            }
+                            return [null];
+                        });
+                        if (results[0][0] === null && results[1][0] === null) {
+                            return [false, test, `UNEXPECTED TEST RESULT (TESTER MUST CHECK THIS)`];
+                        }
+                        if (results[0][0] === null) {
+                            return results[1];
+                        }
+                        if (results[1][0] === null) {
+                            return results[0];
+                        }
+                        if (results[0][0] === false) {
+                            return results[0];
+                        }
+                        if (results[1][0] === false) {
+                            return results[1];
+                        }
+                        if (results[0][0] === true && results[1][0] === true) {
+                            return results[1];
+                        }
+                        throw new Error(`UNEXPECTED TEST RESULT (TESTER MUST CHECK THIS)`);
+                    }
+
                     window.addEventListener('keydown', (event) => {
                         if ((event.ctrlKey || event.metaKey) && event.code === 'Enter') {
                             button.click();
                         }
                     });
+
                     const dump = document.getElementById('dump');
                     const button = document.getElementById('button');
                     const status = document.getElementById('status');
@@ -139,23 +183,20 @@
                     const value = input.value = config.value || '';
                     const html = textarea.value = config.html || '';
                     dump.innerHTML = '';
+
                     setTimeout(() => {
                         dump.innerHTML += html;
                         setTimeout(() => {
-                            try {window[value]} catch (err) {
+                            if (!assert(value)[0]) {
+                                status.style.color = 'green';
+                                status.innerText = 'worked!';
+                            } else {
                                 status.style.color = 'red';
                                 status.innerText = 'blocked';
-                                return;
                             }
-                            try {document[value]} catch (err) {
-                                status.style.color = 'red';
-                                status.innerText = 'blocked';
-                                return;
-                            }
-                            status.style.color = 'green';
-                            status.innerText = 'allowed';
                         });
                     });
+
                     window.demo = () => {
                         const value = input.value;
                         const html = textarea.value;
