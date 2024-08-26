@@ -87,7 +87,7 @@ window.TEST = (function(){
                 const child = div.appendChild(document.createElement('span'));
                 child.id = 'aaa';
                 await new Promise(r => setTimeout(r, 0));
-                return [!!window['window']['aaa'] || !!window['document']['aaa'], test];
+                return [test, !!window['window']['aaa'] || !!window['document']['aaa']];
             },
 
             // id

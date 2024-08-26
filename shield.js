@@ -17,6 +17,9 @@
     observe(document.documentElement);
 
     function block(object, value, name, node) {
+        if (blocked.includes(JSON.stringify({object, value}))) {
+            return;
+        }
         const tracked = [];
         while (node) {
             if (specialDocumentGetters[value]?.call(document) === node) {
@@ -54,58 +57,6 @@
         }
     }
 
-    function blockDocument(value, name, node) {
-        const object = 'document';
-        if (blocked.includes(JSON.stringify({object, value}))) {
-            return;
-        }
-        if (!document[value]) {
-            return;
-        }
-        if (name !== 'id' && name !== 'name') {
-            return;
-        }
-        if (document[value] instanceof Element) {
-            return block(object, value, name, node);
-        }
-        if (document[value] instanceof HTMLCollection) {
-            return block(object, value, name, node);
-        }
-        if (document[value] === document[value]?.window) {
-            return block(object, value, name, node);
-        }
-    }
-
-    function blockWindow(value, name, node) {
-        const object = 'window';
-        if (blocked.includes(JSON.stringify({object, value}))) {
-            return;
-        }
-        if (!window[value]) {
-            return;
-        }
-        if (name !== 'id' && name !== 'name') {
-            return;
-        }
-        if (window[value] instanceof Element) {
-            return block(object, value, name, node);
-        }
-        if (window[value] instanceof HTMLCollection) {
-            return block(object, value, name, node);
-        }
-        if (window[value] === window[value]?.window && name === 'name') {
-            return block(object, value, name, node);
-        }
-    }
-
-    function hook(node, {name, value}) {
-        if (allowlist?.includes(value)) {
-            return;
-        }
-        blockWindow(value, name, node);
-        blockDocument(value, name, node);
-    }
-
     function address(node) {
         switch (node.nodeType) {
             case Node.ELEMENT_NODE:
@@ -114,7 +65,10 @@
                 break;
             case Node.ATTRIBUTE_NODE:
                 const {name, value} = node;
-                hook(this, {name, value});
+                if (!allowlist?.includes(value)) {
+                    block('window', value, name, this);
+                    block('document', value, name, this);
+                }
                 break;
             default:
                 break;
