@@ -123,52 +123,6 @@
             </div>
             <script>
                 {
-                    function assert(test) {
-                        const results = ['window', 'document'].map(object => {
-                            try {
-                                if (window[object][test] instanceof Element) {
-                                    return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (Element)`];
-                                }
-                                if (window[object][test] instanceof HTMLCollection) {
-                                    return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (HTMLCollection)`];
-                                }
-                                for (let i = 0; i < Infinity; i++) {
-                                    if (!window[i]) {
-                                        break;
-                                    }
-                                    if (window[object][test] === window[i] && window[i] === window[i].window) {
-                                        return [false, test, `shield failed to prevent clobbering of ${object}["${test}"] (Window)`];
-                                    }
-                                }
-                            } catch (err) {
-                                if (err.message === `${object}["${test}"] access attempt was intercepted:`) {
-                                    return [true, test, `shield worked, environment did not clobber ${object}["${test}"] (undefined)`];
-                                }
-                                return [false, test, `UNEXPECTED TEST RESULT WITH ERROR (TESTER MUST CHECK THIS): "${err.message}"`]
-                            }
-                            return [null];
-                        });
-                        if (results[0][0] === null && results[1][0] === null) {
-                            return [false, test, `UNEXPECTED TEST RESULT (TESTER MUST CHECK THIS)`];
-                        }
-                        if (results[0][0] === null) {
-                            return results[1];
-                        }
-                        if (results[1][0] === null) {
-                            return results[0];
-                        }
-                        if (results[0][0] === false) {
-                            return results[0];
-                        }
-                        if (results[1][0] === false) {
-                            return results[1];
-                        }
-                        if (results[0][0] === true && results[1][0] === true) {
-                            return results[1];
-                        }
-                        throw new Error(`UNEXPECTED TEST RESULT (TESTER MUST CHECK THIS)`);
-                    }
-
                     window.addEventListener('keydown', (event) => {
                         if ((event.ctrlKey || event.metaKey) && event.code === 'Enter') {
                             button.click();
