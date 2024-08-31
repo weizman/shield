@@ -19,7 +19,7 @@
                 }
                 const div = document.getElementsByTagName('div')[0];
                 // https://raw.githubusercontent.com/SoheilKhodayari/DOMClobbering/master/domc_markups/dom-clobbering-markups.csv
-                const fetched = await fetch('/clobbered.json'); // by domclob.xyz
+                const fetched = await fetch('./clobbered.json'); // by domclob.xyz
                 const json = await fetched.json();
                 let i = 0;
                 for (const pair of json) {
