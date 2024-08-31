@@ -1,0 +1,37 @@
+<html>
+    <head>
+        <script src="shield.js"></script>
+    </head>
+    <body>
+        <div></div>
+        <script>
+            (async function(){
+                async function test(html, prop) {
+                    const [object, property] = prop.split('.').slice(0,2);
+                    div.innerHTML = html;
+                    await new Promise(r => setTimeout(r, 0));
+                    try {window[object][property]} catch (err) {
+                        if (err.message.includes('access attempt was intercepted')) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                const div = document.getElementsByTagName('div')[0];
+                // https://raw.githubusercontent.com/SoheilKhodayari/DOMClobbering/master/domc_markups/dom-clobbering-markups.csv
+                const fetched = await fetch('/clobbered.json'); // by domclob.xyz
+                const json = await fetched.json();
+                let i = 0;
+                for (const pair of json) {
+                    let [html, prop] = pair;
+                    prop = prop.split('.').slice(0,2).join('.') + i;
+                    html = html.split('\n').join('').split('  ').join('');
+                    html = html.split('"x"').join(`"x${i}"`);
+                    html = html.split("'x'").join(`'x${i}'`);
+                    const result = await test(html, prop);
+                    console.log(`test: "${i++}" ${result ? 'passed' : 'failed'}`, `html: "${html}"`, `prop: "${prop}"`);
+                }
+            }());
+        </script>
+    </body>
+</html>
