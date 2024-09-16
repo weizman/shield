@@ -31,7 +31,7 @@
                 const json = await fetched.json();
                 const tests = extractTestsParam(location.href);
                 for (let i = 0; i < json.length; i++) {
-                    if (tests.length && !tests.includes(i)) continue;
+                    if (tests.length && !tests.includes(i+'')) continue;
                     const pair = json[i];
                     let [html, prop] = pair;
                     prop = prop.split('.').slice(0,2).join('.') + i;
