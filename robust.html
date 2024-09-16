@@ -6,6 +6,14 @@
         <div></div>
         <script>
             (async function(){
+                function extractTestsParam(url) {
+                    const urlParams = new URLSearchParams(new URL(url).search);
+                    const testsParam = urlParams.get('tests');
+                    if (testsParam) {
+                      return testsParam.split(',');
+                    }
+                    return [];
+                }
                 async function test(html, prop) {
                     const [object, property] = prop.split('.').slice(0,2);
                     div.innerHTML = html;
@@ -21,8 +29,10 @@
                 // https://raw.githubusercontent.com/SoheilKhodayari/DOMClobbering/master/domc_markups/dom-clobbering-markups.csv
                 const fetched = await fetch('./clobbered.json'); // by domclob.xyz
                 const json = await fetched.json();
-                let i = 0;
-                for (const pair of json) {
+                const tests = extractTestsParam(location.href);
+                for (let i = 0; i < json.length; i++) {
+                    if (tests.length && !tests.includes(i)) continue;
+                    const pair = json[i];
                     let [html, prop] = pair;
                     prop = prop.split('.').slice(0,2).join('.') + i;
                     html = html.split('\n').join('').split('  ').join('');
